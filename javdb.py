@@ -69,13 +69,22 @@ def getCover_small(a, index=0):
     # javdb sometime returns multiple results
     # DO NOT just get the firt one, get the one with correct index number
     html = etree.fromstring(a, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
-    result = html.xpath("//div[@class='item-image fix-scale-cover']/img/@src")[index]
-    if not 'https' in result:
-        result = 'https:' + result
-    return result
+    try:
+        result = html.xpath("//div[@class='item-image fix-scale-cover']/img/@src")[index]
+        if not 'https' in result:
+            result = 'https:' + result
+        return result
+    except: # 2020.7.17 Repair Cover Url crawl
+        result = html.xpath("//div[@class='item-image fix-scale-cover']/img/@data-src")[index]
+        if not 'https' in result:
+            result = 'https:' + result
+        return result
 def getCover(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
-    result = str(html.xpath("//div[contains(@class, 'column-video-cover')]/a/img/@src")).strip(" ['']")
+    try:
+        result = html.xpath("//div[contains(@class, 'column-video-cover')]/a/img/@src")[0]
+    except: # 2020.7.17 Repair Cover Url crawl
+        result = html.xpath("//div[contains(@class, 'column-video-cover')]/img/@src")[0]
     return result
 def getDirector(a):
     html = etree.fromstring(a, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
@@ -107,6 +116,13 @@ def main(number):
         ids =html.xpath('//*[@id="videos"]/div/div/a/div[contains(@class, "uid")]/text()')
         correct_url = urls[ids.index(number)]
         detail_page = get_html('https://javdb.com' + correct_url)
+
+        # If gray image exists ,then replace with normal cover
+        cover_small = getCover_small(query_result, index=ids.index(number))
+        if 'placeholder' in cover_small:
+            cover_small = getCover(detail_page)
+
+
         dic = {
             'actor': getActor(detail_page),
             'title': getTitle(number, detail_page),
@@ -117,7 +133,7 @@ def main(number):
             'release': getRelease(detail_page),
             'number': getNum(detail_page),
             'cover': getCover(detail_page),
-            'cover_small': getCover_small(query_result, index=ids.index(number)),
+            'cover_small': cover_small,
             'imagecut': 3,
             'tag': getTag(detail_page),
             'label': getLabel(detail_page),
@@ -136,4 +152,4 @@ def main(number):
 # main('DV-1562')
 # input("[+][+]Press enter key exit, you can check the error messge before you exit.\n[+][+]按回车键结束，你可以在结束之前查看和错误信息。")
 if __name__ == "__main__":
-    print(main('ipx-292'))
+    print(main('snyz-007'))
