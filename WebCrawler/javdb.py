@@ -9,11 +9,10 @@ from ADC_function import *
 # import io
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer, errors = 'replace', line_buffering = True)
 
-def getTitle(num, a):
+def getTitle(a):
     html = etree.fromstring(a, etree.HTMLParser())
     result = html.xpath("/html/body/section/div/h2/strong/text()")[0]
-    result = result[len(num):] if result.startswith(num) else result
-    return result.strip()
+    return result
 def getActor(a):  # //*[@id="center_column"]/div[2]/div[1]/div/table/tbody/tr[1]/td/text()
     html = etree.fromstring(a, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
     result1 = str(html.xpath('//strong[contains(text(),"演員")]/../span/text()')).strip(" ['']")
